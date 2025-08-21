@@ -304,8 +304,8 @@ function periodoAFecha(p) {
     const fadVal = document.getElementById("fad").value;
     if (!fadVal) { alert("Ingresá la FAD."); return; }
 
-    const fadFecha = new Date(fadVal);
-    const fadYM = new Date(fadFecha.getFullYear(), fadFecha.getMonth(), 1);
+    const [anio, mes] = fadVal.split("-"); 
+    const fadYM = new Date(parseInt(anio), parseInt(mes) - 1, 1);
 
     // Pensión
     const esPension = document.getElementById("pension").checked;
@@ -324,7 +324,7 @@ function periodoAFecha(p) {
 const idxFad = datos.findIndex(d => mismaYM(periodoAFecha(d.periodo), fadYM));
 
 if (idxFad === -1) {
-  const limite = new Date(2009, 1, 28); 
+  const limite = new Date(2009, 2, 1); 
   if (fadYM < limite) {
     alert('Este programa es válido para FAD posteriores al 01/03/2009.\n\nEn caso de ser anterior, puede ingresar el haber movilizado al 02/2020 (para aplicar el fallo "Cier" y "Gimenez") o al 02/2021 (para aplicar el fallo "Gimenez").');
   } else {
