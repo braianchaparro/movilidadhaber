@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Cálculo de Haberes</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 6px; text-align: center; }
+    th { background-color: #f2f2f2; }
+    input, select { margin: 5px; padding: 5px; }
+    button { padding: 8px 15px; margin-top: 10px; }
+  </style>
+</head>
+<body>
+
+<h2>Movilidad del Haber</h2>
+<p style="font-size: 0.9em; color: #555; margin-top: -10px;">
+  (*) Índice de movilidad: Aumentos generales de ley. En el 2020 se aplican los aumentos suspendidos de la ley 27.426 - FMP 9512/2020 "Cier Nilda". 
+  Desde el 03/2021 hasta el 03/2024 se aplica la variación trimestral del Índice de Precios al Consumidor. 
+  En el 06/2024 se aplicó el empalme del 8,83% sobre 51,62% (65%) - FMP 3073/2022 "Gimenez Mirta".
+</p>
+
+<style>
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* dos columnas iguales */
+    gap: 20px; /* separación entre columnas */
+    max-width: 600px;
+    margin-bottom: 15px;
+  }
+  .form-col {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+</style>
+
+<div class="form-grid">
+  <!-- Columna izquierda -->
+  <div class="form-col">
+    <label>PBU: <input type="number" id="pbu" step="0.01" value="0"></label>
+    <label>PC: <input type="number" id="pc" step="0.01" value="0"></label>
+    <label>PAP: <input type="number" id="pap" step="0.01" value="0"></label>
+    <label>FAD: <input type="date" id="fad"></label>
+  </div>
+
+  <!-- Columna derecha -->
+  <div class="form-col">
+    <label><input type="checkbox" id="pension" onchange="togglePension()"> Pensión</label>
+    <label>Fallecimiento: <input type="date" id="fallecimiento" disabled></label>
+    <label>Porcentaje:
+      <select id="porcentaje" disabled>
+        <option value="0.7">70%</option>
+        <option value="0.75">75%</option>
+      </select>
+    </label>
+  </div>
+</div>
+
+<button onclick="calcular()">Calcular</button>
+<button onclick="window.print()">Imprimir</button>
+
+  <table id="tabla">
+    <thead>
+      <tr>
+        <th>Periodo</th>
+        <th>Inc.</th>
+        <th>PBU</th>
+        <th>PC</th>
+        <th>PAP</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+<script>
+  const datos = [
+    {"periodo":"mar-09","inc":1.1169},
+    {"periodo":"abr-09","inc":1.0000},
+    {"periodo":"may-09","inc":1.0000},
+    {"periodo":"jun-09","inc":1.0000},
+    {"periodo":"jul-09","inc":1.0000},
+    {"periodo":"ago-09","inc":1.0000},
+    {"periodo":"sept-09","inc":1.0734},
+    {"periodo":"oct-09","inc":1.0000},
+    {"periodo":"nov-09","inc":1.0000},
+    {"periodo":"dic-09","inc":1.0000},
+    {"periodo":"ene-10","inc":1.0000},
+    {"periodo":"feb-10","inc":1.0000},
+    {"periodo":"mar-10","inc":1.0821},
+    {"periodo":"abr-10","inc":1.0000},
+    {"periodo":"may-10","inc":1.0000},
+    {"periodo":"jun-10","inc":1.0000},
+    {"periodo":"jul-10","inc":1.0000},
+    {"periodo":"ago-10","inc":1.0000},
+    {"periodo":"sept-10","inc":1.1690},
+    {"periodo":"oct-10","inc":1.0000},
+    {"periodo":"nov-10","inc":1.0000},
+    {"periodo":"dic-10","inc":1.0000},
+    {"periodo":"ene-11","inc":1.0000},
+    {"periodo":"feb-11","inc":1.0000},
+    {"periodo":"mar-11","inc":1.1733},
+    {"periodo":"abr-11","inc":1.0000},
+    {"periodo":"may-11","inc":1.0000},
+    {"periodo":"jun-11","inc":1.0000},
+    {"periodo":"jul-11","inc":1.0000},
+    {"periodo":"ago-11","inc":1.0000},
+    {"periodo":"sept-11","inc":1.1682},
+    {"periodo":"oct-11","inc":1.0000},
+    {"periodo":"nov-11","inc":1.0000},
+    {"periodo":"dic-11","inc":1.0000},
+    {"periodo":"ene-12","inc":1.0000},
+    {"periodo":"feb-12","inc":1.0000},
+    {"periodo":"mar-12","inc":1.1762},
+    {"periodo":"abr-12","inc":1.0000},
+    {"periodo":"may-12","inc":1.0000},
+    {"periodo":"jun-12","inc":1.0000},
+    {"periodo":"jul-12","inc":1.0000},
+    {"periodo":"ago-12","inc":1.0000},
+    {"periodo":"sept-12","inc":1.1142},
+    {"periodo":"oct-12","inc":1.0000},
+    {"periodo":"nov-12","inc":1.0000},
+    {"periodo":"dic-12","inc":1.0000},
+    {"periodo":"ene-13","inc":1.0000},
+    {"periodo":"feb-13","inc":1.0000},
+    {"periodo":"mar-13","inc":1.1518},
+    {"periodo":"abr-13","inc":1.0000},
+    {"periodo":"may-13","inc":1.0000},
+    {"periodo":"jun-13","inc":1.0000},
+    {"periodo":"jul-13","inc":1.0000},
+    {"periodo":"ago-13","inc":1.0000},
+    {"periodo":"sept-13","inc":1.1441},
+    {"periodo":"oct-13","inc":1.0000},
+    {"periodo":"nov-13","inc":1.0000},
+    {"periodo":"dic-13","inc":1.0000},
+    {"periodo":"ene-14","inc":1.0000},
+    {"periodo":"feb-14","inc":1.0000},
+    {"periodo":"mar-14","inc":1.1131},
+    {"periodo":"abr-14","inc":1.0000},
+    {"periodo":"may-14","inc":1.0000},
+    {"periodo":"jun-14","inc":1.0000},
+    {"periodo":"jul-14","inc":1.0000},
+    {"periodo":"ago-14","inc":1.0000},
+    {"periodo":"sept-14","inc":1.1721},
+    {"periodo":"oct-14","inc":1.0000},
+    {"periodo":"nov-14","inc":1.0000},
+    {"periodo":"dic-14","inc":1.0000},
+    {"periodo":"ene-15","inc":1.0000},
+    {"periodo":"feb-15","inc":1.0000},
+    {"periodo":"mar-15","inc":1.1826},
+    {"periodo":"abr-15","inc":1.0000},
+    {"periodo":"may-15","inc":1.0000},
+    {"periodo":"jun-15","inc":1.0000},
+    {"periodo":"jul-15","inc":1.0000},
+    {"periodo":"ago-15","inc":1.0000},
+    {"periodo":"sept-15","inc":1.1249},
+    {"periodo":"oct-15","inc":1.0000},
+    {"periodo":"nov-15","inc":1.0000},
+    {"periodo":"dic-15","inc":1.0000},
+    {"periodo":"ene-16","inc":1.0000},
+    {"periodo":"feb-16","inc":1.0000},
+    {"periodo":"mar-16","inc":1.1535},
+    {"periodo":"abr-16","inc":1.0000},
+    {"periodo":"may-16","inc":1.0000},
+    {"periodo":"jun-16","inc":1.0000},
+    {"periodo":"jul-16","inc":1.0000},
+    {"periodo":"ago-16","inc":1.0000},
+    {"periodo":"sept-16","inc":1.1416},
+    {"periodo":"oct-16","inc":1.0000},
+    {"periodo":"nov-16","inc":1.0000},
+    {"periodo":"dic-16","inc":1.0000},
+    {"periodo":"ene-17","inc":1.0000},
+    {"periodo":"feb-17","inc":1.0000},
+    {"periodo":"mar-17","inc":1.1296},
+    {"periodo":"abr-17","inc":1.0000},
+    {"periodo":"may-17","inc":1.0000},
+    {"periodo":"jun-17","inc":1.0000},
+    {"periodo":"jul-17","inc":1.0000},
+    {"periodo":"ago-17","inc":1.0000},
+    {"periodo":"sept-17","inc":1.1332},
+    {"periodo":"oct-17","inc":1.0000},
+    {"periodo":"nov-17","inc":1.0000},
+    {"periodo":"dic-17","inc":1.0000},
+    {"periodo":"ene-18","inc":1.0000},
+    {"periodo":"feb-18","inc":1.0000},
+    {"periodo":"mar-18","inc":1.0571},
+    {"periodo":"abr-18","inc":1.0000},
+    {"periodo":"may-18","inc":1.0000},
+    {"periodo":"jun-18","inc":1.0569},
+    {"periodo":"jul-18","inc":1.0000},
+    {"periodo":"ago-18","inc":1.0000},
+    {"periodo":"sept-18","inc":1.0668},
+    {"periodo":"oct-18","inc":1.0000},
+    {"periodo":"nov-18","inc":1.0000},
+    {"periodo":"dic-18","inc":1.0778},
+    {"periodo":"ene-19","inc":1.0000},
+    {"periodo":"feb-19","inc":1.0000},
+    {"periodo":"mar-19","inc":1.1183},
+    {"periodo":"abr-19","inc":1.0000},
+    {"periodo":"may-19","inc":1.0000},
+    {"periodo":"jun-19","inc":1.1074},
+    {"periodo":"jul-19","inc":1.0000},
+    {"periodo":"ago-19","inc":1.0000},
+    {"periodo":"sept-19","inc":1.1222},
+    {"periodo":"oct-19","inc":1.0000},
+    {"periodo":"nov-19","inc":1.0000},
+    {"periodo":"dic-19","inc":1.0874},
+    {"periodo":"ene-20","inc":1.0000},
+    {"periodo":"feb-20","inc":1.0000},
+    {"periodo":"mar-20","inc":1.1156},
+    {"periodo":"abr-20","inc":1.0000},
+    {"periodo":"may-20","inc":1.0000},
+    {"periodo":"jun-20","inc":1.1089},
+    {"periodo":"jul-20","inc":1.0000},
+    {"periodo":"ago-20","inc":1.0000},
+    {"periodo":"sept-20","inc":1.0988},
+    {"periodo":"oct-20","inc":1.0000},
+    {"periodo":"nov-20","inc":1.0000},
+    {"periodo":"dic-20","inc":1.0449},
+    {"periodo":"ene-21","inc":1.0000},
+    {"periodo":"feb-21","inc":1.0000},
+    {"periodo":"mar-21","inc":1.1133},
+    {"periodo":"abr-21","inc":1.0000},
+    {"periodo":"may-21","inc":1.0000},
+    {"periodo":"jun-21","inc":1.1295},
+    {"periodo":"jul-21","inc":1.0000},
+    {"periodo":"ago-21","inc":1.0000},
+    {"periodo":"sept-21","inc":1.1239},
+    {"periodo":"oct-21","inc":1.0000},
+    {"periodo":"nov-21","inc":1.0000},
+    {"periodo":"dic-21","inc":1.1211},
+    {"periodo":"ene-22","inc":1.0000},
+    {"periodo":"feb-22","inc":1.0000},
+    {"periodo":"mar-22","inc":1.1228},
+    {"periodo":"abr-22","inc":1.0000},
+    {"periodo":"may-22","inc":1.0000},
+    {"periodo":"jun-22","inc":1.1607},
+    {"periodo":"jul-22","inc":1.0000},
+    {"periodo":"ago-22","inc":1.0000},
+    {"periodo":"sept-22","inc":1.1730},
+    {"periodo":"oct-22","inc":1.0000},
+    {"periodo":"nov-22","inc":1.0000},
+    {"periodo":"dic-22","inc":1.2198},
+    {"periodo":"ene-23","inc":1.0000},
+    {"periodo":"feb-23","inc":1.0000},
+    {"periodo":"mar-23","inc":1.1729},
+    {"periodo":"abr-23","inc":1.0000},
+    {"periodo":"may-23","inc":1.0000},
+    {"periodo":"jun-23","inc":1.2173},
+    {"periodo":"jul-23","inc":1.0000},
+    {"periodo":"ago-23","inc":1.0000},
+    {"periodo":"sept-23","inc":1.2378},
+    {"periodo":"oct-23","inc":1.0000},
+    {"periodo":"nov-23","inc":1.0000},
+    {"periodo":"dic-23","inc":1.3466},
+    {"periodo":"ene-24","inc":1.0000},
+    {"periodo":"feb-24","inc":1.0000},
+    {"periodo":"mar-24","inc":1.5329},
+    {"periodo":"abr-24","inc":1.0000},
+    {"periodo":"may-24","inc":1.0000},
+    {"periodo":"jun-24","inc":1.6500},
+    {"periodo":"jul-24","inc":1.0418},
+    {"periodo":"ago-24","inc":1.0458},
+    {"periodo":"sept-24","inc":1.0403},
+    {"periodo":"oct-24","inc":1.0417},
+    {"periodo":"nov-24","inc":1.0347},
+    {"periodo":"dic-24","inc":1.0269},
+    {"periodo":"ene-25","inc":1.0243},
+    {"periodo":"feb-25","inc":1.0270},
+    {"periodo":"mar-25","inc":1.0221},
+    {"periodo":"abr-25","inc":1.0240},
+    {"periodo":"may-25","inc":1.0373},
+    {"periodo":"jun-25","inc":1.0278},
+    {"periodo":"jul-25","inc":1.0150},
+    {"periodo":"ago-25","inc":1.0162}
+  ];
+
+function periodoAFecha(p) {
+    const [mesRaw, anioRaw] = p.split("-");
+    const m = mesRaw.toLowerCase();
+    const map = {ene:1,feb:2,mar:3,abr:4,may:5,jun:6,jul:7,ago:8,sep:9,sept:9,oct:10,nov:11,dic:12};
+    const clave = m.startsWith('sept') ? 'sept' : m.substring(0,3);
+    const mes = map[clave];
+    const anio = 2000 + parseInt(anioRaw,10);
+    return new Date(anio, mes-1, 1);
+  }
+
+  function mismaYM(a, b) {
+    return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth();
+  }
+
+  function togglePension() {
+    const chk = document.getElementById("pension").checked;
+    document.getElementById("fallecimiento").disabled = !chk;
+    document.getElementById("porcentaje").disabled = !chk;
+  }
+
+  function calcular() {
+    const pbuIni = parseFloat(document.getElementById("pbu").value) || 0;
+    const pcIni  = parseFloat(document.getElementById("pc").value) || 0;
+    const papIni = parseFloat(document.getElementById("pap").value) || 0;
+    const fadVal = document.getElementById("fad").value;
+    if (!fadVal) { alert("Ingresá la FAD."); return; }
+
+    const fadFecha = new Date(fadVal);
+    const fadYM = new Date(fadFecha.getFullYear(), fadFecha.getMonth(), 1);
+
+    // Pensión
+    const esPension = document.getElementById("pension").checked;
+    let fallecimientoFecha = null;
+    let fallecimientoYM = null;
+    let porc = 1;
+    if (esPension) {
+      const falleVal = document.getElementById("fallecimiento").value;
+      if (!falleVal) { alert("Ingresá la fecha de fallecimiento."); return; }
+      fallecimientoFecha = new Date(falleVal);
+      fallecimientoYM = new Date(fallecimientoFecha.getFullYear(), fallecimientoFecha.getMonth(), 1);
+      porc = parseFloat(document.getElementById("porcentaje").value);
+    }
+
+    // Buscar índice del periodo que coincide con la FAD
+const idxFad = datos.findIndex(d => mismaYM(periodoAFecha(d.periodo), fadYM));
+
+if (idxFad === -1) {
+  const limite = new Date(2009, 2, 1); // marzo 2009 (mes 2 porque arranca en 0)
+  if (fadYM < limite) {
+    alert('Este programa es válido para FAD posteriores al 01/03/2009.\n\nEn caso de ser anterior, puede ingresar el haber movilizado al 02/2020 (para aplicar el fallo "Cier" y "Gimenez") o al 02/2021 (para aplicar el fallo "Gimenez").');
+  } else {
+    alert("La FAD no coincide con ningún periodo en la tabla.");
+  }
+  return;
+}
+
+    const tbody = document.querySelector("#tabla tbody");
+    tbody.innerHTML = "";
+
+    let pbu = 0, pc = 0, pap = 0;
+
+    for (let i = idxFad; i < datos.length; i++) {
+      const d = datos[i];
+      const periodoFecha = periodoAFecha(d.periodo);
+
+      if (i === idxFad) {
+        // Mes de FAD: asignar valores originales
+        pbu = pbuIni;
+        pc  = pcIni;
+        pap = papIni;
+      } else {
+        // Mes siguiente en adelante: multiplicar por inc del MES ACTUAL
+        pbu = pbu * d.inc;
+        pc  = pc * d.inc;
+        pap = pap * d.inc;
+      }
+
+      // Si es el mes del fallecimiento → aplicar porcentaje
+      if (esPension && mismaYM(periodoFecha, fallecimientoYM)) {
+        pbu = pbu * porc;
+        pc  = pc * porc;
+        pap = pap * porc;
+      }
+
+      const total = pbu + pc + pap;
+
+      tbody.innerHTML += `
+        <tr>
+          <td>${d.periodo}</td>
+          <td>${d.inc.toFixed(4)}</td>
+          <td>$${pbu.toFixed(2)}</td>
+          <td>$${pc.toFixed(2)}</td>
+          <td>$${pap.toFixed(2)}</td>
+          <td>$${total.toFixed(2)}</td>
+        </tr>
+      `;
+    }
+  }
+</script>
+</body>
+</html>
