@@ -324,7 +324,7 @@ function periodoAFecha(p) {
 const idxFad = datos.findIndex(d => mismaYM(periodoAFecha(d.periodo), fadYM));
 
 if (idxFad === -1) {
-  const limite = new Date(2009, 2, 1); // marzo 2009 (mes 2 porque arranca en 0)
+  const limite = new Date(2009, 1, 28); // marzo 2009 (mes 2 porque arranca en 0)
   if (fadYM < limite) {
     alert('Este programa es válido para FAD posteriores al 01/03/2009.\n\nEn caso de ser anterior, puede ingresar el haber movilizado al 02/2020 (para aplicar el fallo "Cier" y "Gimenez") o al 02/2021 (para aplicar el fallo "Gimenez").');
   } else {
