@@ -4,15 +4,109 @@
   <meta charset="UTF-8">
   <title>Cálculo de Haberes</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-    th, td { border: 1px solid #ccc; padding: 6px; text-align: center; }
-    th { background-color: #f2f2f2; }
-    input, select { margin: 5px; padding: 5px; }
-    button { padding: 8px 15px; margin-top: 10px; }
-  </style>
+/* ===== Estilos generales ===== */
+body {
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f3f4f6;
+  margin: 30px;
+  color: #1f2937;
+}
+
+h2 {
+  text-align: center;
+  font-size: 1.8rem;
+  margin-bottom: 10px;
+  color: #111827;
+  font-weight: 700;
+}
+
+.card {
+  background: #fff;
+  padding: 25px 30px;
+  border-radius: 20px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  max-width: 1000px;
+  margin: 0 auto;
+  transition: transform 0.2s;
+}
+.card:hover {
+  transform: translateY(-3px);
+}
+
+/* ===== Botones ===== */
+button {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  margin-right: 12px;
+  transition: all 0.2s ease-in-out;
+}
+button:hover {
+  background: linear-gradient(135deg, #1e40af, #1d4ed8);
+  transform: scale(1.03);
+}
+
+/* ===== Tabla refinada ===== */
+table {
+  border-collapse: collapse;
+  width: auto;              /* ancho se ajusta al contenido */
+  margin: 20px auto;        /* centrada */
+  font-size: 14px;          /* más compacta */
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  display: none; /* Oculta al inicio */
+}
+
+th, td {
+  padding: 10px 14px;       /* menos padding = más compacta */
+  text-align: center;
+  white-space: nowrap;      /* evita cortes de línea innecesarios */
+}
+
+th {
+  background: #f1f5f9;      /* gris claro, elegante */
+  color: #374151;           /* gris oscuro, buen contraste */
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 0.3px;
+}
+
+tbody tr:nth-child(even) {
+  background-color: #f3f4f6; /* gris medio */
+}
+
+tbody tr:nth-child(odd) {
+  background-color: #ffffff; /* blanco */
+}
+
+tbody tr:hover {
+  background-color: #e5e7eb; /* gris más fuerte al hover */
+  transition: background 0.2s ease-in-out;
+}
+
+/* ===== Inputs y selects ===== */
+input, select {
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+input:focus, select:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.2);
+}
+</style>
 </head>
 <body>
+<div class="card">
 
 <h2>Movilidad del Haber</h2>
 <p style="font-size: 0.9em; color: #555; margin-top: -10px;">
@@ -58,24 +152,25 @@
   </div>
 </div>
 
+
+<div class="options">
+  <label><input type="radio" name="modo" value="pbupcpap" checked> PBU + PC + PAP</label>
+  <label><input type="radio" name="modo" value="haberunico"> Haber único</label>
+</div>
+
 <button onclick="calcular()">Calcular</button>
 <button onclick="window.print()">Imprimir</button>
 
+  
   <table id="tabla">
-    <thead>
-      <tr>
-        <th>Periodo</th>
-        <th>Inc.</th>
-        <th>PBU</th>
-        <th>PC</th>
-        <th>PAP</th>
-        <th>Total</th>
-      </tr>
-    </thead>
+    <thead></thead>
     <tbody></tbody>
   </table>
 
+
 <script>
+  const formatoPesos = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 2 });
+
   const datos = [
     {"periodo":"mar-09","inc":1.1169},
     {"periodo":"abr-09","inc":1.0000},
@@ -307,6 +402,7 @@ function periodoAFecha(p) {
     const [anio, mes] = fadVal.split("-"); 
     const fadYM = new Date(parseInt(anio), parseInt(mes) - 1, 1);
 
+
     // Pensión
     const esPension = document.getElementById("pension").checked;
     let fallecimientoFecha = null;
@@ -315,8 +411,10 @@ function periodoAFecha(p) {
     if (esPension) {
       const falleVal = document.getElementById("fallecimiento").value;
       if (!falleVal) { alert("Ingresá la fecha de fallecimiento."); return; }
-      fallecimientoFecha = new Date(falleVal);
-      fallecimientoYM = new Date(fallecimientoFecha.getFullYear(), fallecimientoFecha.getMonth(), 1);
+      // Parseo seguro local (evita retroceder un día por huso horario)
+      const [fy, fm, fd] = falleVal.split('-').map(Number);
+      // Aplicar porcentaje en el mismo mes del fallecimiento
+      fallecimientoYM = new Date(fy, fm - 1, 1);
       porc = parseFloat(document.getElementById("porcentaje").value);
     }
 
@@ -324,7 +422,7 @@ function periodoAFecha(p) {
 const idxFad = datos.findIndex(d => mismaYM(periodoAFecha(d.periodo), fadYM));
 
 if (idxFad === -1) {
-  const limite = new Date(2009, 2, 1); 
+  const limite = new Date(2009, 2, 1); // marzo 2009 (mes 2 porque arranca en 0)
   if (fadYM < limite) {
     alert('Este programa es válido para FAD posteriores al 01/03/2009.\n\nEn caso de ser anterior, puede ingresar el haber movilizado al 02/2020 (para aplicar el fallo "Cier" y "Gimenez") o al 02/2021 (para aplicar el fallo "Gimenez").');
   } else {
@@ -333,8 +431,34 @@ if (idxFad === -1) {
   return;
 }
 
+    const modo = document.querySelector('input[name="modo"]:checked').value;
+    const thead = document.querySelector("#tabla thead");
     const tbody = document.querySelector("#tabla tbody");
     tbody.innerHTML = "";
+    thead.innerHTML = "";
+
+    if (modo === "pbupcpap") {
+      thead.innerHTML = `
+        <tr>
+          <th>Periodo</th>
+          <th>Inc.</th>
+          <th>PBU</th>
+          <th>PC</th>
+          <th>PAP</th>
+          <th>Total</th>
+        </tr>
+      `;
+    } else {
+      thead.innerHTML = `
+        <tr>
+          <th>Periodo</th>
+          <th>Inc.</th>
+          <th>Haber Mensual</th>
+        </tr>
+      `;
+    }
+
+    document.querySelector("#tabla").style.display = "table";
 
     let pbu = 0, pc = 0, pap = 0;
 
@@ -363,18 +487,29 @@ if (idxFad === -1) {
 
       const total = pbu + pc + pap;
 
-      tbody.innerHTML += `
-        <tr>
-          <td>${d.periodo}</td>
-          <td>${d.inc.toFixed(4)}</td>
-          <td>$${pbu.toFixed(2)}</td>
-          <td>$${pc.toFixed(2)}</td>
-          <td>$${pap.toFixed(2)}</td>
-          <td>$${total.toFixed(2)}</td>
-        </tr>
-      `;
+      if (modo === "pbupcpap") {
+        tbody.innerHTML += `
+          <tr>
+            <td>${d.periodo}</td>
+            <td>${d.inc.toFixed(4)}</td>
+            <td>${formatoPesos.format(pbu)}</td>
+            <td>${formatoPesos.format(pc)}</td>
+            <td>${formatoPesos.format(pap)}</td>
+            <td>${formatoPesos.format(total)}</td>
+          </tr>
+        `;
+      } else {
+        tbody.innerHTML += `
+          <tr>
+            <td>${d.periodo}</td>
+            <td>${d.inc.toFixed(4)}</td>
+            <td>${formatoPesos.format(total)}</td>
+          </tr>
+        `;
+      }
     }
   }
 </script>
+</div>
 </body>
 </html>
