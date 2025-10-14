@@ -474,25 +474,29 @@ if (idxFad === -1) {
 
     let pbu = 0, pc = 0, pap = 0;
 
-    for (let i = idxFad; i < datos.length; i++) {
-      const d = datos[i];
-      // Aplicar RIPTE si está tildado
-      if (document.getElementById('ripte').checked && ripteCoef[d.periodo]) {
-        d.inc = ripteCoef[d.periodo];
-      }
-      const periodoFecha = periodoAFecha(d.periodo);
+for (let i = idxFad; i < datos.length; i++) {
+  const d = datos[i];
+  // Aplicar RIPTE si está tildado
+  if (document.getElementById('ripte').checked && ripteCoef[d.periodo]) {
+    d.inc = ripteCoef[d.periodo];
+  }
+  const periodoFecha = periodoAFecha(d.periodo);
 
-      if (i === idxFad) {
-        // Mes de FAD: asignar valores originales
-        pbu = pbuIni;
-        pc  = pcIni;
-        pap = papIni;
-      } else {
-        // Mes siguiente en adelante: multiplicar por inc del MES ACTUAL
-        pbu = pbu * d.inc;
-        pc  = pc * d.inc;
-        pap = pap * d.inc;
-      }
+  // Forzar el primer coeficiente a 1.0000
+  const incMostrar = (i === idxFad) ? 1.0000 : d.inc;
+
+  if (i === idxFad) {
+    // Mes de FAD: asignar valores originales
+    pbu = pbuIni;
+    pc  = pcIni;
+    pap = papIni;
+  } else {
+    // Mes siguiente en adelante: multiplicar por inc del MES ACTUAL
+    pbu = pbu * d.inc;
+    pc  = pc * d.inc;
+    pap = pap * d.inc;
+  }
+
 
       // Si es el mes del fallecimiento → aplicar porcentaje
       if (esPension && mismaYM(periodoFecha, fallecimientoYM)) {
@@ -507,7 +511,7 @@ if (idxFad === -1) {
         tbody.innerHTML += `
           <tr>
             <td>${d.periodo}</td>
-            <td>${d.inc.toFixed(4)}</td>
+	    <td>${incMostrar.toFixed(4)}</td>
             <td>${formatoPesos.format(pbu)}</td>
             <td>${formatoPesos.format(pc)}</td>
             <td>${formatoPesos.format(pap)}</td>
@@ -518,7 +522,7 @@ if (idxFad === -1) {
         tbody.innerHTML += `
           <tr>
             <td>${d.periodo}</td>
-            <td>${d.inc.toFixed(4)}</td>
+            <td>${incMostrar.toFixed(4)}</td>
             <td>${formatoPesos.format(total)}</td>
           </tr>
         `;
@@ -526,14 +530,36 @@ if (idxFad === -1) {
     }
   }
 
+
 function imprimirTabla() {
   const tabla = document.getElementById('tabla').outerHTML;
   const usaRipte = document.getElementById('ripte').checked;
+  const fadVal = document.getElementById('fad').value;
 
-  // Texto condicional según RIPTE
-  const textoIndice = usaRipte
-    ? "Índice de movilidad: Aumentos generales de ley. Se aplicaron los aumentos suspendidos de la ley 27.426. A partir del 03/2021 se aplicó la variación trimestral del IPC. A partir del 06/2024 se aplicó la variación de la RIPTE. En el 06/2024 se empalmó el índice IPC (51,62%) y RIPTE (16,10%)."
-    : "Índice de movilidad: Aumentos generales de ley. Se aplicaron los aumentos suspendidos de la ley 27.426. A partir del 03/2021 se aplicó la variación trimestral del IPC. A partir del 06/2024 se aplicó DNU 274/24. En el 06/2024 se empalmó el índice IPC (51,62%) y aumento legal (8,83%).";
+  if (!fadVal) { 
+    alert("Ingresá la FAD antes de imprimir."); 
+    return; 
+  }
+
+  const fad = new Date(fadVal);
+  const limite2021 = new Date("2021-01-01");
+  const limite2024 = new Date("2024-06-01");
+
+  let textoIndice = "";
+
+  if (fad >= limite2024) {
+    textoIndice = usaRipte
+      ? "A partir del 06/2024 se aplicó la variación de la RIPTE."
+      : "A partir del 06/2024 se aplicó DNU 274/24.";
+  } else if (fad >= limite2021) {
+    textoIndice = usaRipte
+      ? "A partir del 03/2021 se aplicó la variación trimestral del IPC. A partir del 06/2024 se aplicó la variación de la RIPTE. En el 06/2024 se empalmó el índice IPC (51,62%) y RIPTE (16,10%)."
+      : "A partir del 03/2021 se aplicó la variación trimestral del IPC. A partir del 06/2024 se aplicó DNU 274/24. En el 06/2024 se empalmó el índice IPC (51,62%) y aumento legal (8,83%).";
+  } else {
+    textoIndice = usaRipte
+    ? "Índice de movilidad: Aumentos generales de ley. Se aplicaron los aumentos suspendidos de la ley 27.426. A partir del 03/2021 se aplicó la variaciÃ³n trimestral del IPC. A partir del 06/2024 se aplicó la variación de la RIPTE. En el 06/2024 se empalmó el Ã­ndice IPC (51,62%) y RIPTE (16,10%)."
+    : "Índice de movilidad: Aumentos generales de ley. Se aplicaron los aumentos suspendidos de la ley 27.426. A partir del 03/2021 se aplicó la variación trimestral del IPC. A partir del 06/2024 se aplicó DNU 274/24. En el 06/2024 se empalmó el Í­ndice IPC (51,62%) y aumento legal (8,83%).";
+  }
 
   const win = window.open('', '_blank');
   win.document.write(`
@@ -561,6 +587,7 @@ function imprimirTabla() {
   `);
   win.document.close();
 }
+
 
 function limpiar() {
   // Limpia todos los inputs y selects
