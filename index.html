@@ -110,9 +110,7 @@ input:focus, select:focus {
 
 <h2>Movilidad del Haber</h2>
 <p style="font-size: 0.9em; color: #555; margin-top: -10px;">
-  (*) Índice de movilidad: Aumentos generales de ley. En el 2020 se aplican los aumentos suspendidos de la ley 27.426 - FMP 9512/2020 "Cier Nilda". 
-  Desde el 03/2021 hasta el 03/2024 se aplica la variación trimestral del Índice de Precios al Consumidor. 
-  En el 06/2024 se aplicó el empalme del 8,83% sobre 51,62% (65%) - FMP 3073/2022 "Gimenez Mirta".
+  (*) Índice de movilidad: Aumentos suspendidos de la ley 27.426 + IPC trimestral + RIPTE mensual.
 </p>
 
 <style>
@@ -148,8 +146,9 @@ input:focus, select:focus {
         <option value="0.7">70%</option>
         <option value="0.75">75%</option>
       </select>
-    </label>
-  </div>
+      </label>
+      <label><input type="checkbox" id="ripte"> Aplicar RIPTE (jun/24 - actualidad)</label>
+    </div>
 </div>
 
 
@@ -159,7 +158,8 @@ input:focus, select:focus {
 </div>
 
 <button onclick="calcular()">Calcular</button>
-<button onclick="window.print()">Imprimir</button>
+<button onclick="imprimirTabla()">Imprimir</button>
+<button onclick="limpiar()">Limpiar</button>
 
   
   <table id="tabla">
@@ -372,6 +372,17 @@ input:focus, select:focus {
     {"periodo":"ago-25","inc":1.0162},
     {"periodo":"sept-25","inc":1.0190}
   ];
+// Nuevos coeficientes RIPTE
+const ripteCoef = {
+  "jun-24":1.760300, "jul-24":1.073000, "ago-24":1.061000, "sept-24":1.066000,
+  "oct-24":1.041700, "nov-24":1.041000, "dic-24":1.066000,
+  "ene-25":1.028000, "feb-25":1.027000, "mar-25":1.026000,
+  "abr-25":1.061000, "may-25":1.041000, "jun-25":1.029000,
+  "jul-25":1.019000, "ago-25":1.028000, "sept-25":1.029000
+};
+
+
+
 
 function periodoAFecha(p) {
     const [mesRaw, anioRaw] = p.split("-");
@@ -465,6 +476,10 @@ if (idxFad === -1) {
 
     for (let i = idxFad; i < datos.length; i++) {
       const d = datos[i];
+      // Aplicar RIPTE si está tildado
+      if (document.getElementById('ripte').checked && ripteCoef[d.periodo]) {
+        d.inc = ripteCoef[d.periodo];
+      }
       const periodoFecha = periodoAFecha(d.periodo);
 
       if (i === idxFad) {
@@ -510,6 +525,61 @@ if (idxFad === -1) {
       }
     }
   }
+
+function imprimirTabla() {
+  const tabla = document.getElementById('tabla').outerHTML;
+  const usaRipte = document.getElementById('ripte').checked;
+
+  // Texto condicional según RIPTE
+  const textoIndice = usaRipte
+    ? "Índice de movilidad: Aumentos generales de ley. Se aplicaron los aumentos suspendidos de la ley 27.426. A partir del 03/2021 se aplicó la variación trimestral del IPC. A partir del 06/2024 se aplicó la variación de la RIPTE. En el 06/2024 se empalmó el índice IPC (51,62%) y RIPTE (16,10%)."
+    : "Índice de movilidad: Aumentos generales de ley. Se aplicaron los aumentos suspendidos de la ley 27.426. A partir del 03/2021 se aplicó la variación trimestral del IPC. A partir del 06/2024 se aplicó DNU 274/24. En el 06/2024 se empalmó el índice IPC (51,62%) y aumento legal (8,83%).";
+
+  const win = window.open('', '_blank');
+  win.document.write(`
+    <html>
+      <head>
+        <title>Movilidad del Haber</title>
+        <style>
+          body { font-family: 'Inter', sans-serif; margin: 40px; color: #1f2937; }
+          h2 { text-align: center; }
+          h4 { text-align: center; font-weight: normal; color: #555; margin-top: -10px; }
+          table { border-collapse: collapse; width: auto; margin: 30px auto; font-size: 14px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+          th, td { padding: 10px 14px; text-align: center; white-space: nowrap; }
+          th { background: #f1f5f9; color: #374151; text-transform: uppercase; }
+          tr:nth-child(even) { background-color: #f3f4f6; }
+          tr:nth-child(odd) { background-color: #ffffff; }
+        </style>
+      </head>
+      <body>
+        <h2>Movilidad del Haber</h2>
+        <h4>${textoIndice}</h4>
+        ${tabla}
+        <script>window.print();<\/script>
+      </body>
+    </html>
+  `);
+  win.document.close();
+}
+
+function limpiar() {
+  // Limpia todos los inputs y selects
+  document.querySelectorAll('input[type="number"], input[type="date"]').forEach(el => el.value = '');
+  document.getElementById('pension').checked = false;
+  document.getElementById('ripte').checked = false;
+  document.getElementById('fallecimiento').disabled = true;
+  document.getElementById('porcentaje').disabled = true;
+  document.getElementById('porcentaje').value = '0.7';
+  document.querySelector('input[name="modo"][value="pbupcpap"]').checked = true;
+
+  // Oculta y limpia la tabla
+  const tabla = document.getElementById('tabla');
+  tabla.style.display = 'none';
+  tabla.querySelector('thead').innerHTML = '';
+  tabla.querySelector('tbody').innerHTML = '';
+}
+
+
 </script>
 </div>
 </body>
