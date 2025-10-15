@@ -549,16 +549,16 @@ function imprimirTabla() {
 
   if (fad >= limite2024) {
     textoIndice = usaRipte
-      ? "A partir del 06/2024 se aplicó la variación de la RIPTE."
-      : "A partir del 06/2024 se aplicó DNU 274/24.";
+      ? "Se aplicó la variación mensual de la RIPTE."
+      : "Aumentos generales (DNU 274/24).";
   } else if (fad >= limite2021) {
     textoIndice = usaRipte
-      ? "A partir del 03/2021 se aplicó la variación trimestral del IPC. A partir del 06/2024 se aplicó la variación de la RIPTE. En el 06/2024 se empalmó el índice IPC (51,62%) y RIPTE (16,10%)."
-      : "A partir del 03/2021 se aplicó la variación trimestral del IPC. A partir del 06/2024 se aplicó DNU 274/24. En el 06/2024 se empalmó el índice IPC (51,62%) y aumento legal (8,83%).";
+      ? "A partir del 03/2021 se aplicó la variación trimestral del IPC. En el 06/2024 se empalmó el índice IPC (51,62%) y RIPTE (16,10%). A partir de ahí, se aplicó la variación de la RIPTE."
+      : "A partir del 03/2021 se aplicó la variación trimestral del IPC. En el 06/2024 se empalmó el índice IPC (51,62%) y aumento legal (8,83%). A partir de ahí, aumentos generales (DNU 274/24).";
   } else {
     textoIndice = usaRipte
-    ? "Índice de movilidad: Aumentos generales de ley. Se aplicaron los aumentos suspendidos de la ley 27.426. A partir del 03/2021 se aplicó la variaciÃ³n trimestral del IPC. A partir del 06/2024 se aplicó la variación de la RIPTE. En el 06/2024 se empalmó el Ã­ndice IPC (51,62%) y RIPTE (16,10%)."
-    : "Índice de movilidad: Aumentos generales de ley. Se aplicaron los aumentos suspendidos de la ley 27.426. A partir del 03/2021 se aplicó la variación trimestral del IPC. A partir del 06/2024 se aplicó DNU 274/24. En el 06/2024 se empalmó el Í­ndice IPC (51,62%) y aumento legal (8,83%).";
+    ? "Índice de movilidad: Aumentos generales de ley. Se aplicaron los aumentos suspendidos de la ley 27.426. A partir del 03/2021 se aplicó la variación trimestral del IPC. En el 06/2024 se empalmó el Í­ndice IPC (51,62%) y RIPTE (16,10%). A partir de ahí, se aplicó la variación de la RIPTE."
+    : "Índice de movilidad: Aumentos generales de ley. Se aplicaron los aumentos suspendidos de la ley 27.426. A partir del 03/2021 se aplicó la variación trimestral del IPC. En el 06/2024 se empalmó el Í­ndice IPC (51,62%) y aumento legal (8,83%). A partir de ahí, aumentos generales (DNU 274/24).";
   }
 
   const win = window.open('', '_blank');
